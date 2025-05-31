@@ -1,0 +1,8 @@
+services:
+  yolo-detector:
+    build: .
+    container_name: yolo_app
+    volumes:
+      - ./app:/app
+    environment:
+      - PYTHONUNBUFFERED=1
