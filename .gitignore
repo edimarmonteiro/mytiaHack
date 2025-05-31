@@ -1,0 +1,41 @@
+# Bytecode do Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Arquivos de log e cache
+*.log
+*.sqlite3
+*.db
+*.tmp
+*.bak
+*.swp
+*.swo
+*.DS_Store
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Docker
+*.tar
+*.pid
+
+# VS Code / PyCharm
+.vscode/
+.idea/
+
+# Arquivos temporários do sistema operacional
+Thumbs.db
+ehthumbs.db
+.DS_Store
+
+# Diretórios dinâmicos
+uploads/
+outputs/
+
+# Arquivos de ambiente (se usar dotenv)
+.env
+.env.*

@@ -4,5 +4,9 @@ services:
     container_name: yolo_app
     volumes:
       - ./app:/app
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
     environment:
       - PYTHONUNBUFFERED=1
+    ports:
+      - "5001:5001"
