@@ -4,6 +4,7 @@ import os
 import numpy as np
 from datetime import datetime
 import base64
+import shutil
 
 app = Flask(__name__)
 
@@ -13,9 +14,19 @@ def image_to_base64(image):
     return base64.b64encode(buffer).decode('utf-8')
 
 def detectar_circulos(imagem_path):
+    # Create timestamp for unique filenames
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Ensure outputs directory exists
+    os.makedirs("outputs", exist_ok=True)
+    
     # Read and create a copy of the image
     image = cv2.imread(imagem_path)
     output = image.copy()
+    
+    # Save original image
+    original_path = f"outputs/original_{timestamp}.jpg"
+    cv2.imwrite(original_path, image)
     
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -30,6 +41,10 @@ def detectar_circulos(imagem_path):
     # Edge enhancement
     gray = cv2.Laplacian(gray, cv2.CV_8U, ksize=3)
     gray = cv2.convertScaleAbs(gray)
+    
+    # Save preprocessed image
+    preprocessed_path = f"outputs/preprocessed_{timestamp}.jpg"
+    cv2.imwrite(preprocessed_path, gray)
 
     circles = cv2.HoughCircles(
         gray,
@@ -72,6 +87,10 @@ def detectar_circulos(imagem_path):
                 "diametro_mm": round(r * 2 * 0.264583, 2)  # Assuming pixels to mm conversion
             }
             barras_info.append(barra_info)
+    
+    # Save final output image
+    final_path = f"outputs/final_{timestamp}.jpg"
+    cv2.imwrite(final_path, output)
 
     # Convert images to base64
     original_base64 = image_to_base64(image)
@@ -80,10 +99,20 @@ def detectar_circulos(imagem_path):
 
     return {
         "total": len(barras_info),
+        "barras": barras_info,
         "imagens": {
-            "original": f"data:image/jpeg;base64,{original_base64}",
-            "preprocessada": f"data:image/jpeg;base64,{preprocessed_base64}",
-            "final": f"data:image/jpeg;base64,{output_base64}"
+            "original": {
+                "base64": f"data:image/jpeg;base64,{original_base64}",
+                "path": original_path
+            },
+            "preprocessada": {
+                "base64": f"data:image/jpeg;base64,{preprocessed_base64}",
+                "path": preprocessed_path
+            },
+            "final": {
+                "base64": f"data:image/jpeg;base64,{output_base64}",
+                "path": final_path
+            }
         }
     }
 
@@ -97,12 +126,15 @@ def detectar():
     caminho_imagem = os.path.join("uploads", imagem.filename)
     imagem.save(caminho_imagem)
 
-    resultado = detectar_circulos(caminho_imagem)
-    
-    # Clean up the uploaded file
-    os.remove(caminho_imagem)
-
-    return jsonify(resultado)
+    try:
+        resultado = detectar_circulos(caminho_imagem)
+        return jsonify(resultado)
+    finally:
+        # Clean up the uploaded file
+        if os.path.exists(caminho_imagem):
+            os.remove(caminho_imagem)
 
 if __name__ == "__main__":
+    # Ensure outputs directory exists
+    os.makedirs("outputs", exist_ok=True)
     app.run(host="0.0.0.0", port=5001, debug=True)
